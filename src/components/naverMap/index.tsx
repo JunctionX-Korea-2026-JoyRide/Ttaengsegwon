@@ -6,6 +6,7 @@ import { MapMarker as MarkerType, Coordinates } from "@/types";
 interface NaverMapProps {
   markers?: MarkerType[];
   center?: Coordinates;
+  boundary?: Coordinates[];
 }
 
 const DEFAULT_CENTER: Coordinates = { lat: 37.5665, lng: 126.9780 }; // 서울시청
@@ -13,15 +14,35 @@ const MIN_ZOOM = 6;
 const MAX_ZOOM = 21;
 const DEFAULT_ZOOM = 16;
 
-export default function NaverMap({ markers = [], center }: NaverMapProps) {
+const CATEGORY_STYLE: Record<string, { emoji: string; bg: string; label: string }> = {
+  recommended: { emoji: "🏠", bg: "#2563eb", label: "추천 생활권" },
+  hospital: { emoji: "🏥", bg: "#ef4444", label: "병원" },
+  bus_stop: { emoji: "🚌", bg: "#16a34a", label: "버스정류장" },
+  market: { emoji: "🏪", bg: "#f59e0b", label: "전통시장" },
+};
+
+function buildCategoryIcon(category?: string): naver.maps.HtmlIcon | undefined {
+  const style = category ? CATEGORY_STYLE[category] : undefined;
+  if (!style) return undefined;
+
+  return {
+    content: `<div style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:${style.bg};border:2px solid #ffffff;box-shadow:0 1px 4px rgba(0,0,0,0.35);font-size:16px;">${style.emoji}</div>`,
+    size: new window.naver.maps.Size(32, 32),
+    anchor: new window.naver.maps.Point(16, 16),
+  };
+}
+
+export default function NaverMap({ markers = [], center, boundary }: NaverMapProps) {
   const mapElementRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<naver.maps.Map | null>(null);
   const markersRef = useRef<naver.maps.Marker[]>([]);
   const infoWindowsRef = useRef<naver.maps.InfoWindow[]>([]);
+  const polygonRef = useRef<naver.maps.Polygon | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mapReady, setMapReady] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
   const [isDragging, setIsDragging] = useState(false);
   const [dragPercentage, setDragPercentage] = useState<number | null>(null);
@@ -84,6 +105,8 @@ export default function NaverMap({ markers = [], center }: NaverMapProps) {
       window.naver.maps.Event.addListener(mapInstance, "zoom_changed", (zoom: number) => {
         setZoomLevel(zoom);
       });
+
+      setMapReady(true);
     }
   }, [loading, error, center, markers]);
 
@@ -98,7 +121,7 @@ export default function NaverMap({ markers = [], center }: NaverMapProps) {
       const targetLatLng = new window.naver.maps.LatLng(firstCoord.lat, firstCoord.lng);
       mapRef.current.morph(targetLatLng, mapRef.current.getZoom());
     }
-  }, [center, markers]);
+  }, [center, markers, mapReady]);
 
   // 4. 마커 및 인포윈도우 렌더링
   useEffect(() => {
@@ -120,11 +143,26 @@ export default function NaverMap({ markers = [], center }: NaverMapProps) {
         map: mapRef.current!,
         title: markerData.label,
         animation: window.naver.maps.Animation.DROP,
+        icon: buildCategoryIcon(markerData.category),
       });
+
+      const categoryStyle = markerData.category
+        ? CATEGORY_STYLE[markerData.category]
+        : undefined;
 
       const contentString = `
         <div style="padding: 10px; min-width: 140px; text-align: center; font-family: sans-serif;">
+          ${
+            categoryStyle
+              ? `<div style="font-size: 11px; color: ${categoryStyle.bg}; font-weight: 600; margin-bottom: 2px;">${categoryStyle.emoji} ${categoryStyle.label}</div>`
+              : ""
+          }
           <div style="font-weight: 600; font-size: 13px; color: #1e293b;">${markerData.label}</div>
+          ${
+            markerData.address
+              ? `<div style="font-size: 11px; color: #64748b; margin-top: 2px;">${markerData.address}</div>`
+              : ""
+          }
           ${
             markerData.score
               ? `<div style="font-size: 11px; color: #2563eb; margin-top: 4px; font-weight: bold;">추천 점수: ${markerData.score}점</div>`
@@ -153,9 +191,35 @@ export default function NaverMap({ markers = [], center }: NaverMapProps) {
       markersRef.current.push(marker);
       infoWindowsRef.current.push(infoWindow);
     });
-  }, [markers]);
+  }, [markers, mapReady]);
 
-  // 5. 줌 컨트롤 로직
+  // 5. 동 경계 폴리곤 렌더링
+  useEffect(() => {
+    if (!mapRef.current || !window.naver?.maps) return;
+
+    if (polygonRef.current) {
+      polygonRef.current.setMap(null);
+      polygonRef.current = null;
+    }
+
+    if (boundary && boundary.length > 0) {
+      const path = boundary.map(
+        (c) => new window.naver.maps.LatLng(c.lat, c.lng)
+      );
+
+      polygonRef.current = new window.naver.maps.Polygon({
+        map: mapRef.current,
+        paths: [path],
+        fillColor: "#3b82f6",
+        fillOpacity: 0.15,
+        strokeColor: "#2563eb",
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+      });
+    }
+  }, [boundary, mapReady]);
+
+  // 6. 줌 컨트롤 로직
   const zoomIn = () => {
     if (!mapRef.current) return;
     const current = mapRef.current.getZoom();

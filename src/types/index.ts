@@ -18,11 +18,16 @@ export interface Place {
   url?: string;
 }
 
+export type MapMarkerCategory = "recommended" | "hospital" | "bus_stop" | "market";
+
 export interface MapMarker {
   id: string;
   coordinates: Coordinates;
   label: string;
   score?: number;
+  category?: MapMarkerCategory;
+  address?: string;
+  distanceMeter?: number;
 }
 
 export interface GeocodingApiResponse {
@@ -130,6 +135,36 @@ export interface ChatApiRequest {
 export interface ChatApiResponse {
   /** 어시스턴트 응답 — ContentBlock 배열 */
   blocks: ContentBlock[];
+}
+
+export interface RecommendDongApiRequest {
+  prompt: string;
+}
+
+export interface RecommendDongApiResponse {
+  dong: string;
+  reason: string;
+  address: string;
+  coordinates: Coordinates;
+  /** recommend_car_free_neighborhoods 등 MCP 도구 결과에서 나온 주변 시설 마커 (병원/버스정류장/시장) */
+  markers?: MapMarker[];
+  /** 직선거리 추정, 배차 추정 등에 관한 주의사항 (MCP 도구 결과) */
+  caveats?: string[];
+  /** recommend_car_free_neighborhoods 결과 후보 목록 (점수 내림차순), /maps에서 후보별로 넘겨보기 위함 */
+  candidates?: NeighborhoodCandidate[];
+}
+
+/** recommend_car_free_neighborhoods의 추천 후보 하나 (지도에서 넘겨보기 위한 단위) */
+export interface NeighborhoodCandidate {
+  rank: number;
+  name: string;
+  score: number;
+  reason: string;
+  caveats: string[];
+  coordinates: Coordinates;
+  /** 시장 주소 등 경계 조회용 대표 주소 */
+  address: string;
+  markers: MapMarker[];
 }
 
 // ============================================================
