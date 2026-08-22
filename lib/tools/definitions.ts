@@ -1,0 +1,77 @@
+import { ToolDefinition } from "@/types";
+
+export const DOMAIN_TOOLS: ToolDefinition[] = [
+  {
+    name: "search_nearby_facilities",
+    description:
+      "Search for convenience facilities (cafes, marts, hospitals, gyms, pharmacies) near a given location.",
+    parameters: {
+      type: "object",
+      properties: {
+        address: {
+          type: "string",
+          description: "Target address or building name",
+        },
+        category: {
+          type: "string",
+          description:
+            "Facility category (e.g. cafe, mart, hospital, gym, pharmacy)",
+        },
+        radiusMeter: {
+          type: "number",
+          description: "Search radius in meters (default 500m)",
+        },
+      },
+      required: ["address"],
+    },
+  },
+  {
+    name: "get_public_transport",
+    description:
+      "Get public transportation information (subway stations, bus stops) near the target location.",
+    parameters: {
+      type: "object",
+      properties: {
+        address: {
+          type: "string",
+          description: "Target address or building name",
+        },
+        radiusMeter: {
+          type: "number",
+          description: "Search radius in meters (default 1000m)",
+        },
+      },
+      required: ["address"],
+    },
+  },
+  {
+    name: "get_safety_facilities",
+    description:
+      "Retrieve safety indicators including CCTV counts, police station proximity, and street lighting status.",
+    parameters: {
+      type: "object",
+      properties: {
+        address: {
+          type: "string",
+          description: "Target address or building name",
+        },
+      },
+      required: ["address"],
+    },
+  },
+  {
+    name: "analyze_area",
+    description:
+      "Comprehensive living quality and convenience analysis for a residential location.",
+    parameters: {
+      type: "object",
+      properties: {
+        address: {
+          type: "string",
+          description: "Target address or building name",
+        },
+      },
+      required: ["address"],
+    },
+  },
+];
