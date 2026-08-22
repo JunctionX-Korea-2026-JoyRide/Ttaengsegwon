@@ -43,10 +43,10 @@ Keep business logic out of React components.
 Use the package manager configured in the repository.
 
 ```bash
-pnpm install
-pnpm dev
-pnpm lint
-pnpm build
+yarn install
+yarn dev
+yarn lint
+yarn build
 ```
 
 Run relevant lint, type-check, tests, and build before completing changes.
