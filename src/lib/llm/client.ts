@@ -1,4 +1,4 @@
-import { AnalysisResult } from "@/types";
+import { ContentBlock } from "@/types";
 
 interface ChatCompletionMessage {
   role: "system" | "user" | "assistant";
@@ -6,8 +6,7 @@ interface ChatCompletionMessage {
 }
 
 interface LlmResponse {
-  message: string;
-  data?: AnalysisResult;
+  blocks: ContentBlock[];
 }
 
 export class LlmClient {
@@ -22,44 +21,67 @@ export class LlmClient {
   }
 
   public async generateChatResponse(
-    messages: ChatCompletionMessage[],
-    systemPrompt?: string
+    messages: ChatCompletionMessage[]
   ): Promise<LlmResponse> {
     if (!this.apiKey) {
-      // Mock fallback response for initial development without API keys
+      // API 키 없을 때 개발용 mock 응답 (ContentBlock[] 구조)
       return {
-        message:
-          "LLM API 키가 설정되지 않았습니다. .env.local에 LLM_API_KEY를 설정해주세요.",
-        data: {
-          score: 85,
-          summary:
-            "테스트용 기본 분석 데이터입니다. 교통 및 편의시설이 우수한 지역입니다.",
-          transport: {
-            score: 90,
-            nearestStations: [
-              {
-                stationName: "강남역",
-                line: "2호선/신분당선",
-                distanceMeter: 250,
-                walkingMinutes: 3,
+        blocks: [
+          {
+            type: "text",
+            text: "LLM API 키가 설정되지 않았습니다. .env.local에 LLM_API_KEY를 설정해주세요.\n\n(아래는 개발용 Mock 분석 결과입니다.)",
+          },
+          {
+            type: "analysis",
+            address: "강남구 역삼동",
+            result: {
+              score: 85,
+              summary: "테스트용 기본 분석 데이터입니다. 교통 및 편의시설이 우수한 지역입니다.",
+              transport: {
+                score: 90,
+                nearestStations: [
+                  {
+                    stationName: "강남역",
+                    line: "2호선/신분당선",
+                    distanceMeter: 250,
+                    walkingMinutes: 3,
+                  },
+                ],
               },
-            ],
+              safety: {
+                cctvCount: 14,
+                policeStationDistanceMeter: 400,
+                streetLightDensity: "high",
+                safetyScore: 88,
+              },
+            },
           },
-          safety: {
-            cctvCount: 14,
-            policeStationDistanceMeter: 400,
-            streetLightDensity: "high",
-            safetyScore: 88,
-          },
-        },
+        ],
       };
     }
 
-    const payloadMessages: ChatCompletionMessage[] = [];
-    if (systemPrompt) {
-      payloadMessages.push({ role: "system", content: systemPrompt });
+    const systemPrompt = `당신은 주거 입지 및 생활 편의성 분석 전문가 '땡세권 AI'입니다.
+사용자가 특정 지역이나 주소를 문의하면 교통, 편의시설, 치안, 거주 편의성을 종합적으로 분석하여 안내합니다.
+
+반드시 아래 ContentBlock 배열 JSON 형식으로만 응답하십시오. 다른 텍스트는 포함하지 마세요.
+[
+  { "type": "text", "text": "사용자에게 전할 설명" },
+  {
+    "type": "analysis",
+    "address": "분석한 주소",
+    "result": {
+      "score": 85,
+      "summary": "핵심 요약",
+      "transport": { "score": 90, "nearestStations": [{ "stationName": "역이름", "line": "호선", "distanceMeter": 300, "walkingMinutes": 4 }] },
+      "safety": { "cctvCount": 15, "policeStationDistanceMeter": 350, "streetLightDensity": "high", "safetyScore": 88 }
     }
-    payloadMessages.push(...messages);
+  }
+]`;
+
+    const payloadMessages: ChatCompletionMessage[] = [
+      { role: "system", content: systemPrompt },
+      ...messages,
+    ];
 
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: "POST",
@@ -71,6 +93,7 @@ export class LlmClient {
         model: this.model,
         messages: payloadMessages,
         temperature: 0.7,
+        response_format: { type: "json_object" },
       }),
     });
 
@@ -83,24 +106,19 @@ export class LlmClient {
       choices: Array<{ message: { content: string } }>;
     };
 
-    const content = result.choices[0]?.message?.content || "";
+    const content = result.choices[0]?.message?.content || "[]";
 
     try {
-      // Try to parse structured JSON if returned
-      const parsed = JSON.parse(content);
-      if (
-        typeof parsed === "object" &&
-        parsed !== null &&
-        "message" in parsed
-      ) {
-        return parsed as LlmResponse;
+      const parsed: unknown = JSON.parse(content);
+      if (Array.isArray(parsed)) {
+        return { blocks: parsed as ContentBlock[] };
       }
     } catch {
-      // Plain text response
+      // 파싱 실패 시 텍스트 블록으로 fallback
     }
 
     return {
-      message: content,
+      blocks: [{ type: "text", text: content }],
     };
   }
 }

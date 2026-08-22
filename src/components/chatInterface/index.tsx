@@ -1,17 +1,103 @@
 "use client";
 
 import React, { useState } from "react";
-import { Message, ChatApiResponse } from "@/types";
+import dynamic from "next/dynamic";
+import {
+  Message,
+  ContentBlock,
+  ChatApiResponse,
+  AnalysisBlock,
+  MapBlock,
+  PlaceListBlock,
+  TextBlock,
+} from "@/types";
 import { AreaScoreCard } from "../areaScoreCard";
-import { Send, Sparkles, Building2 } from "lucide-react";
+import { Send, Sparkles, Building2, MapPin } from "lucide-react";
+
+// KakaoMap은 SSR 비활성화 필요
+const KakaoMap = dynamic(() => import("@/components/kakaoMap"), { ssr: false });
+
+// ============================================================
+// ContentBlock 동적 렌더러
+// ============================================================
+
+function renderBlock(block: ContentBlock, index: number): React.ReactNode {
+  switch (block.type) {
+    case "text":
+      return (
+        <p key={index} className="whitespace-pre-wrap text-sm leading-relaxed">
+          {(block as TextBlock).text}
+        </p>
+      );
+
+    case "analysis": {
+      const b = block as AnalysisBlock;
+      return (
+        <div key={index} className="mt-2">
+          <AreaScoreCard data={b.result} />
+        </div>
+      );
+    }
+
+    case "map": {
+      const b = block as MapBlock;
+      const markers = b.markers.map((p) => ({
+        id: p.id,
+        coordinates: p.coordinates,
+        label: p.name,
+      }));
+      return (
+        <div key={index} className="mt-2 h-64 w-full rounded-xl overflow-hidden border border-slate-200">
+          <KakaoMap markers={markers} center={b.center} />
+        </div>
+      );
+    }
+
+    case "place_list": {
+      const b = block as PlaceListBlock;
+      return (
+        <ul key={index} className="mt-2 space-y-2">
+          {b.places.map((place) => (
+            <li
+              key={place.id}
+              className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border border-blue-100 text-sm"
+            >
+              <MapPin className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+              <div>
+                <div className="font-semibold text-slate-800">{place.name}</div>
+                {place.address && (
+                  <div className="text-xs text-slate-500 mt-0.5">{place.address}</div>
+                )}
+                {place.distance !== undefined && (
+                  <div className="text-xs text-blue-600 mt-0.5">{place.distance}m</div>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+
+    default:
+      return null;
+  }
+}
+
+// ============================================================
+// ChatInterface
+// ============================================================
 
 export const ChatInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "initial",
       role: "assistant",
-      content:
-        "안녕하세요! '땡세권 AI'입니다. 궁금하신 주소나 매물 위치를 말씀해주시면 MCP와 공공데이터를 기반으로 교통, 편의시설, 치안을 종합 분석해 드립니다.",
+      content: [
+        {
+          type: "text",
+          text: "안녕하세요! '땡세권 AI'입니다. 궁금하신 주소나 매물 위치를 말씀해주시면 MCP와 공공데이터를 기반으로 교통, 편의시설, 치안을 종합 분석해 드립니다.",
+        },
+      ] satisfies ContentBlock[],
       createdAt: new Date().toISOString(),
     },
   ]);
@@ -41,7 +127,11 @@ export const ChatInterface: React.FC = () => {
         body: JSON.stringify({
           messages: newMessages.map((m) => ({
             role: m.role,
-            content: m.content,
+            // ContentBlock[] → 서버 전달 시 stringify
+            content:
+              typeof m.content === "string"
+                ? m.content
+                : JSON.stringify(m.content),
           })),
         }),
       });
@@ -55,8 +145,7 @@ export const ChatInterface: React.FC = () => {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.message,
-        data: data.data,
+        content: data.blocks,
         createdAt: new Date().toISOString(),
       };
 
@@ -68,8 +157,12 @@ export const ChatInterface: React.FC = () => {
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content:
-            "분석 중 오류가 발생했습니다. 서버 연결 상태를 확인해주세요.",
+          content: [
+            {
+              type: "text",
+              text: "분석 중 오류가 발생했습니다. 서버 연결 상태를 확인해주세요.",
+            },
+          ] satisfies ContentBlock[],
           createdAt: new Date().toISOString(),
         },
       ]);
@@ -117,18 +210,19 @@ export const ChatInterface: React.FC = () => {
               >
                 {isUser ? "나" : "AI"}
               </div>
-              <div className="max-w-[80%] space-y-2">
-                <div
-                  className={`rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
-                    isUser
-                      ? "bg-slate-900 text-white rounded-tr-none shadow-sm"
-                      : "bg-white text-slate-800 border border-slate-200 rounded-tl-none shadow-xs"
-                  }`}
-                >
-                  {m.content}
-                </div>
-
-                {m.data && <AreaScoreCard data={m.data} />}
+              <div
+                className={`max-w-[80%] space-y-1 rounded-2xl px-4 py-3 ${
+                  isUser
+                    ? "bg-slate-900 text-white rounded-tr-none shadow-sm text-sm leading-relaxed whitespace-pre-wrap"
+                    : "bg-white text-slate-800 border border-slate-200 rounded-tl-none shadow-xs"
+                }`}
+              >
+                {/* user: 단순 string / assistant: ContentBlock[] 렌더러 */}
+                {typeof m.content === "string"
+                  ? m.content
+                  : (m.content as ContentBlock[]).map((block, i) =>
+                      renderBlock(block, i)
+                    )}
               </div>
             </div>
           );

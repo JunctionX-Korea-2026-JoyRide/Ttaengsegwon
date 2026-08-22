@@ -29,8 +29,8 @@ export default function KakaoMap({ markers = [], center }: KakaoMapProps) {
   const calculatePercentageFromY = (clientY: number) => {
     if (!trackRef.current) return 0;
     const rect = trackRef.current.getBoundingClientRect();
-    let percentage = (clientY - rect.top) / rect.height;
-    return Math.max(0, Math.min(1, percentage));
+    const percentage = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    return percentage;
   };
 
   const handleTrackMouseDown = (e: React.MouseEvent | React.TouchEvent) => {

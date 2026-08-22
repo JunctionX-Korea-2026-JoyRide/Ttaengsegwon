@@ -1,10 +1,38 @@
-export interface Message {
-  id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  data?: AnalysisResult;
-  createdAt: string;
+// ============================================================
+// 지도 & 장소
+// ============================================================
+
+export interface Coordinates {
+  lat: number;
+  lng: number;
 }
+
+export interface Place {
+  id: string;
+  name: string;
+  category?: string;
+  coordinates: Coordinates;
+  address?: string;
+  distance?: number; // 기준점으로부터 거리 (미터)
+  phone?: string;
+  url?: string;
+}
+
+export interface MapMarker {
+  id: string;
+  coordinates: Coordinates;
+  label: string;
+  score?: number;
+}
+
+export interface GeocodingApiResponse {
+  coordinates: Coordinates;
+  address: string;
+}
+
+// ============================================================
+// 도메인 분석 데이터 (기존 AreaScoreCard 등에서 활용)
+// ============================================================
 
 export interface FacilityInfo {
   name: string;
@@ -38,6 +66,76 @@ export interface AnalysisResult {
   facilities?: FacilityInfo[];
 }
 
+// ============================================================
+// ContentBlock — UI 렌더링 단위
+// 채팅 응답은 단순 문자열이 아니라 ContentBlock[]으로 구성됩니다.
+// ============================================================
+
+/** 텍스트(마크다운) 블록 */
+export interface TextBlock {
+  type: "text";
+  text: string;
+}
+
+/** 지도 블록 — 마커와 함께 지도를 렌더링합니다 */
+export interface MapBlock {
+  type: "map";
+  center?: Coordinates;
+  markers: Place[];
+}
+
+/** 장소 목록 블록 — 카드 형태의 리스트 */
+export interface PlaceListBlock {
+  type: "place_list";
+  places: Place[];
+}
+
+/** 지역 분석 결과 블록 (기존 AreaScoreCard) */
+export interface AnalysisBlock {
+  type: "analysis";
+  address: string;
+  result: AnalysisResult;
+}
+
+/** 모든 ContentBlock 타입의 유니온 */
+export type ContentBlock = TextBlock | MapBlock | PlaceListBlock | AnalysisBlock;
+
+// ============================================================
+// 채팅 메시지
+// ============================================================
+
+export interface Message {
+  id: string;
+  role: "user" | "assistant" | "system";
+  /**
+   * user 메시지: 단순 string
+   * assistant 메시지: ContentBlock[] — type에 따라 다른 렌더러가 처리
+   */
+  content: string | ContentBlock[];
+  createdAt: string;
+}
+
+// ============================================================
+// API 요청/응답 스키마
+// ============================================================
+
+export interface ChatApiRequest {
+  messages: Array<{
+    role: "user" | "assistant" | "system";
+    /** 서버 전달 시에는 항상 string으로 직렬화 */
+    content: string;
+  }>;
+}
+
+export interface ChatApiResponse {
+  /** 어시스턴트 응답 — ContentBlock 배열 */
+  blocks: ContentBlock[];
+}
+
+// ============================================================
+// LLM Tool Calling
+// ============================================================
+
 export interface ToolDefinition {
   name: string;
   description: string;
@@ -59,33 +157,4 @@ export interface ToolExecutionResult {
   name: string;
   result: unknown;
   isError?: boolean;
-}
-
-export interface ChatApiRequest {
-  messages: Array<{
-    role: "user" | "assistant" | "system";
-    content: string;
-  }>;
-}
-
-export interface ChatApiResponse {
-  message: string;
-  data?: AnalysisResult;
-}
-
-export interface Coordinates {
-  lat: number;
-  lng: number;
-}
-
-export interface MapMarker {
-  id: string;
-  coordinates: Coordinates;
-  label: string;
-  score?: number;
-}
-
-export interface GeocodingApiResponse {
-  coordinates: Coordinates;
-  address: string;
 }
