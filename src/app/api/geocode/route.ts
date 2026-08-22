@@ -13,9 +13,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const apiKey = process.env.KAKAO_REST_API_KEY;
-    if (!apiKey) {
-      console.error("KAKAO_REST_API_KEY is not configured");
+    const clientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID;
+    const clientSecret = process.env.NAVER_MAP_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      console.error("NAVER_MAP_CLIENT_ID or NAVER_MAP_CLIENT_SECRET is not configured");
       return NextResponse.json(
         { error: "Internal server error: API key missing" },
         { status: 500 }
@@ -23,26 +25,27 @@ export async function POST(request: Request) {
     }
 
     const encodedQuery = encodeURIComponent(query);
-    const url = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodedQuery}`;
+    const url = `https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=${encodedQuery}`;
 
     const response = await fetch(url, {
       method: "GET",
       headers: {
-        Authorization: `KakaoAK ${apiKey}`,
+        "X-NCP-APIGW-API-KEY-ID": clientId,
+        "X-NCP-APIGW-API-KEY": clientSecret,
       },
     });
 
     if (!response.ok) {
-      console.error("Kakao API error", await response.text());
+      console.error("Naver API error", await response.text());
       return NextResponse.json(
-        { error: "Failed to fetch from Kakao API" },
+        { error: "Failed to fetch from Naver API" },
         { status: response.status }
       );
     }
 
     const data = await response.json();
 
-    if (!data.documents || data.documents.length === 0) {
+    if (!data.addresses || data.addresses.length === 0) {
       return NextResponse.json(
         { error: "No results found for the given query" },
         { status: 404 }
@@ -50,10 +53,10 @@ export async function POST(request: Request) {
     }
 
     // 첫 번째 검색 결과를 사용
-    const result = data.documents[0];
+    const result = data.addresses[0];
     const lat = parseFloat(result.y);
     const lng = parseFloat(result.x);
-    const addressName = result.address_name;
+    const addressName = result.jibunAddress || result.roadAddress;
 
     const responseData: GeocodingApiResponse = {
       coordinates: { lat, lng },

@@ -5,8 +5,8 @@ import dynamic from "next/dynamic";
 import { Search } from "lucide-react";
 import { Coordinates, MapMarker } from "@/types";
 
-// KakaoMap은 window 전역 객체를 사용하므로 SSR을 끕니다.
-const KakaoMap = dynamic(() => import("@/components/kakaoMap"), {
+// NaverMap 컴포넌트를 SSR 없이 불러옵니다.
+const NaverMap = dynamic(() => import("@/components/naverMap"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-slate-100">
@@ -87,7 +87,7 @@ export default function MapsPage() {
 
       {/* 지도 영역 */}
       <div className="w-full h-full">
-        <KakaoMap markers={markers} center={center} />
+        <NaverMap markers={markers} center={center} />
       </div>
     </main>
   );

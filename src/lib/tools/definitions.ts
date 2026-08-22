@@ -74,4 +74,28 @@ export const DOMAIN_TOOLS: ToolDefinition[] = [
       required: ["address"],
     },
   },
+  {
+    name: "search_places",
+    description:
+      "Search for places, shops, cafes, restaurants, or amenities using keyword and optional location (e.g. '성수역 카페', '강남 맛집'). Returns real coordinates and place information for map rendering.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Search keyword or place category (e.g., '조용한 카페', '한식당', '약국')",
+        },
+        location: {
+          type: "string",
+          description: "Reference location, station, or neighborhood (e.g., '성수역', '역삼동', '홍대입구')",
+        },
+        radius: {
+          type: "number",
+          description: "Search radius in meters (optional, default 1000)",
+        },
+      },
+      required: ["query"],
+    },
+  },
 ];
+

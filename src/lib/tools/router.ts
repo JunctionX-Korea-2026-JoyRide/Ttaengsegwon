@@ -1,5 +1,6 @@
 import { mcpManager } from "@/lib/mcp/client";
 import { ToolExecutionResult } from "@/types";
+import { searchPlaces } from "./searchPlaces";
 
 export async function routeToolCall(
   name: string,
@@ -45,6 +46,19 @@ async function executeFallbackTool(
     typeof args.address === "string" ? args.address : "Unknown location";
 
   switch (name) {
+    case "search_places": {
+      const query = typeof args.query === "string" ? args.query : "";
+      const location = typeof args.location === "string" ? args.location : undefined;
+      const radius = typeof args.radius === "number" ? args.radius : undefined;
+
+      const places = await searchPlaces({ query, location, radius });
+      return {
+        query,
+        location,
+        places,
+      };
+    }
+
     case "search_nearby_facilities":
       return {
         address,
@@ -106,3 +120,4 @@ async function executeFallbackTool(
       throw new Error(`Unknown tool: ${name}`);
   }
 }
+

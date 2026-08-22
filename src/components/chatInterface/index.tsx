@@ -14,8 +14,8 @@ import {
 import { AreaScoreCard } from "../areaScoreCard";
 import { Send, Sparkles, Building2, MapPin } from "lucide-react";
 
-// KakaoMap은 SSR 비활성화 필요
-const KakaoMap = dynamic(() => import("@/components/kakaoMap"), { ssr: false });
+// NaverMap은 SSR 비활성화 필요
+const NaverMap = dynamic(() => import("@/components/naverMap"), { ssr: false });
 
 // ============================================================
 // ContentBlock 동적 렌더러
@@ -48,7 +48,7 @@ function renderBlock(block: ContentBlock, index: number): React.ReactNode {
       }));
       return (
         <div key={index} className="mt-2 h-64 w-full rounded-xl overflow-hidden border border-slate-200">
-          <KakaoMap markers={markers} center={b.center} />
+          <NaverMap markers={markers} center={b.center} />
         </div>
       );
     }
