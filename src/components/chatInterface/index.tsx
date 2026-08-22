@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Message, ChatApiResponse } from "@/types";
-import { AreaScoreCard } from "./AreaScoreCard";
+import { AreaScoreCard } from "../areaScoreCard";
 import { Send, Sparkles, Building2 } from "lucide-react";
 
 export const ChatInterface: React.FC = () => {

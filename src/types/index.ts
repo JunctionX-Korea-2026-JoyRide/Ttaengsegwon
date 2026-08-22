@@ -72,3 +72,20 @@ export interface ChatApiResponse {
   message: string;
   data?: AnalysisResult;
 }
+
+export interface Coordinates {
+  lat: number;
+  lng: number;
+}
+
+export interface MapMarker {
+  id: string;
+  coordinates: Coordinates;
+  label: string;
+  score?: number;
+}
+
+export interface GeocodingApiResponse {
+  coordinates: Coordinates;
+  address: string;
+}

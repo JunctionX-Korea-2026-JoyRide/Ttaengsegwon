@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { MswProvider } from "@/lib/msw/provider/MSWProvider";
 
 export const metadata: Metadata = {
   title: "땡세권 (Ttaengsegwon) - AI 생활권 입지 분석",
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="antialiased min-h-screen bg-slate-50 text-slate-900">
-        {children}
+        <MswProvider>
+          {children}
+        </MswProvider>
       </body>
     </html>
   );
