@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Coordinates, MapMarker, NeighborhoodCandidate } from "@/types";
 import { consumeRecommendCandidates } from "@/lib/recommendCandidates";
 import styles from "./maps.module.css";
@@ -18,15 +18,17 @@ const NaverMap = dynamic(() => import("@/components/naverMap"), {
   ),
 });
 
+const CITY_LABEL = "포항시";
+
 function MapsPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState("");
   const [center, setCenter] = useState<Coordinates | undefined>(undefined);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
   const [boundary, setBoundary] = useState<Coordinates[] | undefined>(undefined);
-  const [loading, setLoading] = useState(false);
   const [candidates, setCandidates] = useState<NeighborhoodCandidate[]>([]);
   const [candidateIndex, setCandidateIndex] = useState(0);
+  const [locationLabel, setLocationLabel] = useState("");
   const consumedInitialMarkersRef = useRef(false);
 
   const fetchBoundary = useCallback(async (text: string) => {
@@ -42,7 +44,7 @@ function MapsPageContent() {
   const applyCandidate = useCallback((candidate: NeighborhoodCandidate) => {
     setCenter(candidate.coordinates);
     setMarkers(candidate.markers);
-    setQuery(candidate.name);
+    setLocationLabel(candidate.name);
     fetchBoundary(candidate.address || candidate.name);
   }, [fetchBoundary]);
 
@@ -56,6 +58,7 @@ function MapsPageContent() {
     const lat = searchParams.get("lat");
     const lng = searchParams.get("lng");
     const dong = searchParams.get("dong");
+    const district = searchParams.get("district");
     const address = searchParams.get("address");
     if (!lat || !lng) return;
     const coords: Coordinates = { lat: parseFloat(lat), lng: parseFloat(lng) };
@@ -71,49 +74,29 @@ function MapsPageContent() {
     }
     setCenter(coords);
     setMarkers([{ id: "ai-recommended-dong", coordinates: coords, label: dong ? `🤖 AI 추천: ${dong}` : address || "추천 위치" }]);
-    setQuery(dong || address || "");
+    setLocationLabel(
+      dong ? [CITY_LABEL, district, dong].filter(Boolean).join(" ") : address || ""
+    );
     fetchBoundary(address || dong || "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    setLoading(true);
-    try {
-      const response = await fetch("/api/geocode", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query }) });
-      if (!response.ok) throw new Error("Failed to search address");
-      const data = await response.json();
-      const newCenter: Coordinates = data.coordinates;
-      setCenter(newCenter);
-      const newMarker: MapMarker = { id: Date.now().toString(), coordinates: newCenter, label: data.address, score: Math.floor(Math.random() * 41) + 60 };
-      setMarkers([newMarker]);
-      fetchBoundary(data.address || query);
-    } catch (err) { console.error(err); alert("주소 검색에 실패했습니다."); } finally { setLoading(false); }
-  };
-
   return (
     <main className={styles.main}>
-      {/* 플로팅 검색바 */}
-      <div className={styles.searchBarWrapper}>
-        <form onSubmit={handleSearch} className={styles.searchForm}>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="주소를 입력하세요 (예: 강남역)"
-            className={styles.searchInput}
-            disabled={loading}
-          />
+      {/* 좌측 상단 위치 표시 바 */}
+      {locationLabel && (
+        <div className={styles.locationBar}>
           <button
-            type="submit"
-            disabled={loading || !query.trim()}
-            className={styles.searchButton}
+            type="button"
+            onClick={() => router.push("/")}
+            className={styles.backButton}
+            aria-label="메인 화면으로 돌아가기"
           >
-            <Search width={20} height={20} />
+            <ChevronLeft className={styles.backIcon} strokeWidth={2} />
           </button>
-        </form>
-      </div>
+          <span className={styles.locationLabel}>{locationLabel}</span>
+        </div>
+      )}
 
       {/* 지도 영역 */}
       <div className={styles.mapArea}>

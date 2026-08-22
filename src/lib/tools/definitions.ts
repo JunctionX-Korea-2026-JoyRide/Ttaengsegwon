@@ -108,6 +108,39 @@ const GYEONGBUK_TOOLS: ToolDefinition[] = [
     },
   },
   {
+    name: "search_nearby_stores",
+    description:
+      "기준 좌표에서 최대 2km 안의 영업 중 상가업소를 업종·상호 조건으로 검색합니다. (경상북도 데이터)",
+    parameters: {
+      type: "object",
+      properties: {
+        latitude: { type: "number", description: "기준 위도 (WGS84)" },
+        longitude: { type: "number", description: "기준 경도 (WGS84)" },
+        radius_m: {
+          type: "number",
+          description: "직선거리 검색 반경(m), 1~2000, 기본값 1000",
+        },
+        industry_code: {
+          type: "string",
+          description: "업종 대/중/소분류 코드(2·4·6자리) 필터 (선택)",
+        },
+        industry_name: {
+          type: "string",
+          description: "업종명 부분 일치 필터 (선택)",
+        },
+        name_query: {
+          type: "string",
+          description: "상호명·지점명 부분 일치 필터 (선택)",
+        },
+        result_limit: {
+          type: "number",
+          description: "반환할 최대 업소 수, 기본값 20",
+        },
+      },
+      required: ["latitude", "longitude"],
+    },
+  },
+  {
     name: "get_age_population_ratio",
     description:
       "경상북도 행정구역의 주민등록인구에서 요청한 나이대의 인구수와 전체 인구 대비 비율을 반환합니다. 기본값은 70~79세입니다.",

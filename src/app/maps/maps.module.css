@@ -29,70 +29,50 @@
   height: 100%;
 }
 
-/* ── Floating search bar ── */
-.searchBarWrapper {
+/* ── Location bar (top-left, back + recommended location) ── */
+.locationBar {
   position: absolute;
-  top: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 28px;
+  left: 33px;
   z-index: 10;
-  width: 91.666%;
-  max-width: 28rem;
-}
-
-.searchForm {
-  position: relative;
-  background-color: #ffffff;
-  border-radius: 1rem;
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  width: 471px;
+  height: 56px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  padding: 0.5rem;
+  gap: 21px;
+  padding: 16px 20px;
+  background-color: #ffffff;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 
-.searchInput {
-  width: 100%;
-  padding-left: 1rem;
-  padding-right: 3rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  font-size: 1rem;
-  line-height: 1.5rem;
-  color: #1e293b;
-  background-color: transparent;
-  border: none;
-}
-
-.searchInput:focus {
-  outline: none;
-}
-
-.searchButton {
-  position: absolute;
-  right: 0.75rem;
-  padding: 0.5rem;
-  background-color: #3b82f6;
-  color: #ffffff;
-  border: none;
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: background-color 0.15s;
+.backButton {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #0f172a;
 }
 
-.searchButton:hover {
-  background-color: #2563eb;
+.backIcon {
+  width: 15px;
+  height: 8px;
 }
 
-.searchButton:disabled {
-  background-color: #cbd5e1;
-  cursor: not-allowed;
-}
-
-.searchButton:disabled:hover {
-  background-color: #cbd5e1;
+.locationLabel {
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 600;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Candidate navigator (bottom floating bar) ── */

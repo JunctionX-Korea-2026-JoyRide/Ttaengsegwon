@@ -14,16 +14,45 @@ const DEFAULT_CENTER: Coordinates = { lat: 37.5665, lng: 126.9780 }; // 서울�
 const MIN_ZOOM = 6;
 const MAX_ZOOM = 21;
 const DEFAULT_ZOOM = 16;
+const TRACK_TICK_COUNT = 7;
+const TRACK_TICKS = Array.from({ length: TRACK_TICK_COUNT });
 
 const CATEGORY_STYLE: Record<string, { emoji: string; bg: string; label: string }> = {
   recommended: { emoji: "🏠", bg: "#2563eb", label: "추천 생활권" },
   hospital: { emoji: "🏥", bg: "#ef4444", label: "병원" },
+  pharmacy: { emoji: "💊", bg: "#0ea5e9", label: "약국" },
   bus_stop: { emoji: "🚌", bg: "#16a34a", label: "버스정류장" },
   market: { emoji: "🏪", bg: "#f59e0b", label: "전통시장" },
+  shopping: { emoji: "🏬", bg: "#8b5cf6", label: "상가" },
 };
 
-function buildCategoryIcon(category?: string): naver.maps.HtmlIcon | undefined {
-  const style = category ? CATEGORY_STYLE[category] : undefined;
+const PIN_IMAGE: Record<string, string> = {
+  hospital: "/images/hospitalPin.png",
+  pharmacy: "/images/pharmacyPin.png",
+  market: "/images/marketPin.png",
+  bus_stop: "/images/busPin.png",
+  shopping: "/images/shoppingPin.png",
+};
+
+const PIN_WIDTH = 99;
+const PIN_HEIGHT = 116;
+
+function buildCategoryIcon(
+  category?: string
+): naver.maps.HtmlIcon | naver.maps.ImageIcon | undefined {
+  if (!category) return undefined;
+
+  const pinUrl = PIN_IMAGE[category];
+  if (pinUrl) {
+    return {
+      url: pinUrl,
+      size: new window.naver.maps.Size(PIN_WIDTH, PIN_HEIGHT),
+      scaledSize: new window.naver.maps.Size(PIN_WIDTH, PIN_HEIGHT),
+      anchor: new window.naver.maps.Point(PIN_WIDTH / 2, PIN_HEIGHT),
+    };
+  }
+
+  const style = CATEGORY_STYLE[category];
   if (!style) return undefined;
 
   return {
@@ -237,21 +266,21 @@ export default function NaverMap({ markers = [], center, boundary }: NaverMapPro
     }
   };
 
-  const calculatePercentageFromY = useCallback((clientY: number) => {
+  const calculatePercentageFromX = useCallback((clientX: number) => {
     if (!trackRef.current) return 0;
     const rect = trackRef.current.getBoundingClientRect();
-    const percentage = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    const percentage = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     return percentage;
   }, []);
 
   const handleTrackMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
     if (!mapRef.current) return;
     setIsDragging(true);
-    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
-    const percentage = calculatePercentageFromY(clientY);
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const percentage = calculatePercentageFromX(clientX);
     setDragPercentage(percentage);
 
-    // 위쪽(0%)이 MAX_ZOOM, 아래쪽(100%)이 MIN_ZOOM
+    // 왼쪽(0%, + 버튼 방향)이 MAX_ZOOM, 오른쪽(100%, - 버튼 방향)이 MIN_ZOOM
     const newZoom = Math.round(MAX_ZOOM - percentage * (MAX_ZOOM - MIN_ZOOM));
     mapRef.current.setZoom(newZoom);
   };
@@ -261,7 +290,7 @@ export default function NaverMap({ markers = [], center, boundary }: NaverMapPro
 
     const onMouseMove = (e: MouseEvent) => {
       if (!mapRef.current) return;
-      const percentage = calculatePercentageFromY(e.clientY);
+      const percentage = calculatePercentageFromX(e.clientX);
       setDragPercentage(percentage);
       const newZoom = Math.round(MAX_ZOOM - percentage * (MAX_ZOOM - MIN_ZOOM));
       mapRef.current.setZoom(newZoom);
@@ -269,7 +298,7 @@ export default function NaverMap({ markers = [], center, boundary }: NaverMapPro
 
     const onTouchMove = (e: TouchEvent) => {
       if (!mapRef.current) return;
-      const percentage = calculatePercentageFromY(e.touches[0].clientY);
+      const percentage = calculatePercentageFromX(e.touches[0].clientX);
       setDragPercentage(percentage);
       const newZoom = Math.round(MAX_ZOOM - percentage * (MAX_ZOOM - MIN_ZOOM));
       mapRef.current.setZoom(newZoom);
@@ -291,9 +320,9 @@ export default function NaverMap({ markers = [], center, boundary }: NaverMapPro
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onMouseUp);
     };
-  }, [isDragging, calculatePercentageFromY]);
+  }, [isDragging, calculatePercentageFromX]);
 
-  // 핸들 위치 계산: 네이버 지도는 zoom이 높을수록 확대(위쪽 0%)
+  // 핸들 위치 계산: 왼쪽(+ 버튼 방향)일수록 확대(0%)
   const handlePositionPercentage =
     isDragging && dragPercentage !== null
       ? dragPercentage * 100
@@ -319,6 +348,16 @@ export default function NaverMap({ markers = [], center, boundary }: NaverMapPro
 
   return (
     <div className={styles.wrapper}>
+      {/* 지도 상단 화이트 프로그레시브 블러 */}
+      <div className={styles.topBlur} aria-hidden="true">
+        <div className={`${styles.blurLayer} ${styles.blurLayer1}`} />
+        <div className={`${styles.blurLayer} ${styles.blurLayer2}`} />
+        <div className={`${styles.blurLayer} ${styles.blurLayer3}`} />
+        <div className={`${styles.blurLayer} ${styles.blurLayer4}`} />
+        <div className={`${styles.blurLayer} ${styles.blurLayer5}`} />
+        <div className={styles.colorFade} />
+      </div>
+
       {/* 커스텀 줌 컨트롤 바 */}
       <div className={styles.zoomControl}>
         {/* + 버튼 (원형) */}
@@ -337,13 +376,19 @@ export default function NaverMap({ markers = [], center, boundary }: NaverMapPro
           onMouseDown={handleTrackMouseDown}
           onTouchStart={handleTrackMouseDown}
         >
+          {/* 눈금 (7칸) */}
+          <div className={styles.ticks}>
+            {TRACK_TICKS.map((_, i) => (
+              <span key={i} className={styles.tick} />
+            ))}
+          </div>
+
           {/* 드래그 가능한 손잡이 */}
           <div
             className={styles.handle}
             style={{
-              top: `${handlePositionPercentage}%`,
-              transform: "translateY(-50%)",
-              transition: isDragging ? "none" : "top 0.2s ease-out",
+              left: `${handlePositionPercentage}%`,
+              transition: isDragging ? "none" : "left 0.2s ease-out",
             }}
           />
         </div>

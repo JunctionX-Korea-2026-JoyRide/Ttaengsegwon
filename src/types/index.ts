@@ -18,7 +18,13 @@ export interface Place {
   url?: string;
 }
 
-export type MapMarkerCategory = "recommended" | "hospital" | "bus_stop" | "market";
+export type MapMarkerCategory =
+  | "recommended"
+  | "hospital"
+  | "pharmacy"
+  | "bus_stop"
+  | "market"
+  | "shopping";
 
 export interface MapMarker {
   id: string;
@@ -139,6 +145,11 @@ export interface ChatApiResponse {
 
 export interface RecommendDongApiRequest {
   prompt: string;
+  /** 사용자가 온보딩에서 선택한 나이/성별/희망 구/희망 동 (선택값, "전체"는 미지정으로 취급) */
+  age?: string;
+  gender?: string;
+  district?: string;
+  dong?: string;
 }
 
 export interface RecommendDongApiResponse {
