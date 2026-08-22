@@ -172,7 +172,6 @@ export default function NaverMap({ markers = [], center, boundary }: NaverMapPro
         position,
         map: mapRef.current!,
         title: markerData.label,
-        animation: window.naver.maps.Animation.DROP,
         icon: buildCategoryIcon(markerData.category),
       });
 
