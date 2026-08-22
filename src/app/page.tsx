@@ -1,42 +1,43 @@
-import { ModeSelectButton } from "@/components/modeSelectButton";
-import { NeighborhoodChatBar } from "@/components/neighborhoodChatBar";
+import { ChevronRight, ChevronDown } from "lucide-react";
+import styles from "./page.module.css";
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-4">
-      {/* 타이틀 영역 */}
-      <div className="text-center mb-8">
-        <h1 className="text-6xl sm:text-8xl font-bold tracking-tight text-slate-900">
-          <span className="text-blue-500">땡</span>세권
-        </h1>
-        <p className="mt-3 text-base sm:text-lg text-slate-500">
-          필요한 곳이 가까운 동네를 찾아주는 서비스
-        </p>
+    <main className={styles.main}>
+      {/* Main Content Area */}
+      <div className={styles.content}>
+        {/* Profile Avatar */}
+        <div className={styles.avatar}></div>
+
+        {/* Welcome Text */}
+        <div className={styles.welcomeText}>환영합니다</div>
+
+        {/* Selectors */}
+        <div className={styles.selectors}>
+          <div className={styles.ageGroup}>
+            <button className={styles.pillButton}>
+              20
+            </button>
+            <span className={styles.ageText}>대</span>
+          </div>
+
+          <button className={`${styles.pillButton} ${styles.pillButtonWithIcon}`}>
+            <span className={styles.ageText}>여성</span>
+            <ChevronDown className={styles.icon} strokeWidth={2} />
+          </button>
+        </div>
+
+        {/* Next Button */}
+        <button className={styles.nextButton}>
+          <ChevronRight className={styles.nextIcon} strokeWidth={2} />
+        </button>
       </div>
 
-      {/* AI 동네 추천 채팅바 */}
-      <NeighborhoodChatBar />
-
-      {/* 버튼 그리드 */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full max-w-sm sm:max-w-4xl sm:w-auto">
-        <ModeSelectButton
-          href="/young"
-          emoji="🏃"
-          label={"청년층\n땡세권 찾기"}
-          colorScheme="blue"
-        />
-        <ModeSelectButton
-          href="/senior"
-          emoji="🧓"
-          label={"고령층\n땡세권 찾기"}
-          colorScheme="green"
-        />
-        <ModeSelectButton
-          href="/maps"
-          emoji="🗺️"
-          label={"지도로\n탐색하기"}
-          colorScheme="blue"
-        />
+      {/* Semicircle */}
+      <div className={styles.semicircle}>
+        <div className={styles.joyrideContainer}>
+          <span className={styles.joyrideText}>Joyride</span>
+        </div>
       </div>
     </main>
   );

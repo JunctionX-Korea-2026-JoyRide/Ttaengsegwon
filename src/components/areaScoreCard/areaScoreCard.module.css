@@ -1,0 +1,246 @@
+/* AreaScoreCard */
+
+.card {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  text-align: left;
+}
+
+/* Header row */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0.75rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.iconBox {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background-color: #eff6ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  margin: 0;
+}
+
+.summary {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.scoreBox {
+  text-align: right;
+}
+
+.scoreValue {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+.scoreUnit {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+/* Grid section */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Info card (transport / safety) */
+.infoCard {
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid #f1f5f9;
+}
+
+.infoCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.infoCardLabel {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.infoCardLabelIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-right: 0.375rem;
+  flex-shrink: 0;
+}
+
+.iconBlue {
+  color: #3b82f6;
+}
+
+.iconEmerald {
+  color: #10b981;
+}
+
+.iconSlate {
+  color: #94a3b8;
+}
+
+.transportScore {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.safetyScore {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+/* Station list */
+.stationList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stationItem {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stationDistance {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* Safety rows */
+.safetyRows {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: #475569;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.safetyRow {
+  display: flex;
+  justify-content: space-between;
+}
+
+.safetyRowValue {
+  font-weight: 500;
+  color: #334155;
+}
+
+.safetyRowValueEmerald {
+  font-weight: 500;
+  color: #059669;
+}
+
+/* Facilities section */
+.facilitiesSection {
+  padding-top: 0.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.facilitiesLabel {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.facilitiesLabelIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-right: 0.25rem;
+  flex-shrink: 0;
+}
+
+.facilitiesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.facilityTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  background-color: #f1f5f9;
+  color: #334155;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.facilityTagIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.25rem;
+  flex-shrink: 0;
+}

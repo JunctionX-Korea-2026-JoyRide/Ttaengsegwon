@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { MapMarker as MarkerType, Coordinates } from "@/types";
+import styles from "./naverMap.module.css";
 
 interface NaverMapProps {
   markers?: MarkerType[];
@@ -300,16 +301,16 @@ export default function NaverMap({ markers = [], center, boundary }: NaverMapPro
 
   if (loading) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-slate-100">
-        <span className="text-slate-500 text-sm">네이버 지도를 불러오는 중입니다...</span>
+    <div className={styles.loading}>
+        <span className={styles.loadingText}>네이버 지도를 불러오는 중입니다...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-slate-100 p-4 text-center">
-        <span className="text-red-500 text-sm">
+      <div className={styles.error}>
+        <span className={styles.errorText}>
           {error} (환경 변수를 확인해주세요.)
         </span>
       </div>
@@ -317,13 +318,13 @@ export default function NaverMap({ markers = [], center, boundary }: NaverMapPro
   }
 
   return (
-    <div className="relative w-full h-full">
+    <div className={styles.wrapper}>
       {/* 커스텀 줌 컨트롤 바 */}
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-2">
+      <div className={styles.zoomControl}>
         {/* + 버튼 (원형) */}
         <button
           onClick={zoomIn}
-          className="w-10 h-10 flex items-center justify-center bg-white text-slate-700 hover:bg-slate-50 transition-colors shadow-md rounded-full border border-slate-200 font-medium text-xl select-none"
+          className={`${styles.zoomBtn} ${styles.zoomIn}`}
           aria-label="확대"
         >
           +
@@ -332,13 +333,13 @@ export default function NaverMap({ markers = [], center, boundary }: NaverMapPro
         {/* 줌 트랙 및 드래그 핸들 */}
         <div
           ref={trackRef}
-          className="relative w-2 h-32 bg-white/80 border border-slate-200 rounded-full shadow-inner cursor-pointer flex justify-center py-2 box-content"
+          className={styles.track}
           onMouseDown={handleTrackMouseDown}
           onTouchStart={handleTrackMouseDown}
         >
           {/* 드래그 가능한 손잡이 */}
           <div
-            className="absolute w-4 h-6 bg-green-500 rounded-full shadow-md cursor-grab active:cursor-grabbing hover:bg-green-600 transition-colors -ml-1"
+            className={styles.handle}
             style={{
               top: `${handlePositionPercentage}%`,
               transform: "translateY(-50%)",
@@ -350,7 +351,7 @@ export default function NaverMap({ markers = [], center, boundary }: NaverMapPro
         {/* - 버튼 (원형) */}
         <button
           onClick={zoomOut}
-          className="w-10 h-10 flex items-center justify-center bg-white text-slate-700 hover:bg-slate-50 transition-colors shadow-md rounded-full border border-slate-200 font-medium text-2xl leading-none pb-1 select-none"
+          className={`${styles.zoomBtn} ${styles.zoomOut}`}
           aria-label="축소"
         >
           -
@@ -358,7 +359,7 @@ export default function NaverMap({ markers = [], center, boundary }: NaverMapPro
       </div>
 
       {/* 네이버 지도 캔버스 컨테이너 */}
-      <div ref={mapElementRef} className="w-full h-full" />
+      <div ref={mapElementRef} className={styles.mapCanvas} />
     </div>
   );
 }
