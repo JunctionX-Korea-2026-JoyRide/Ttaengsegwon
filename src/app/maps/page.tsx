@@ -83,22 +83,47 @@ function walkLabel(name: string, minutes?: number): string {
     : `${name} 도보 ${Math.max(1, minutes)}분`;
 }
 
-function DetailPin() {
+type DetailIconType = "market" | "hospital" | "bus";
+
+const DETAIL_ICONS: Record<
+  DetailIconType,
+  { src: string; width: number; height: number }
+> = {
+  market: {
+    src: "/images/figma/detail-market.svg",
+    width: 44,
+    height: 42,
+  },
+  hospital: {
+    src: "/images/figma/detail-hospital.svg",
+    width: 50,
+    height: 50,
+  },
+  bus: {
+    src: "/images/figma/detail-bus.svg",
+    width: 53,
+    height: 53,
+  },
+};
+
+function DetailIcon({ type }: { type: DetailIconType }) {
+  const icon = DETAIL_ICONS[type];
+
   return (
-    <span className={styles.detailPin} aria-hidden="true">
+    <span className={styles.detailIcon} aria-hidden="true">
       <Image
-        src="/images/figma/detail-pin.svg"
+        src="/images/figma/detail-marker.svg"
         alt=""
-        width={47}
-        height={52}
-        className={styles.detailPinBase}
+        width={99}
+        height={116}
+        className={styles.detailMarker}
       />
       <Image
-        src="/images/figma/detail-pin-glyph.svg"
+        src={icon.src}
         alt=""
-        width={15}
-        height={15}
-        className={styles.detailPinGlyph}
+        width={icon.width}
+        height={icon.height}
+        className={styles.detailIconGlyph}
       />
     </span>
   );
@@ -159,17 +184,17 @@ function RecommendationResultPanel({
 
         <dl className={styles.resultDetails}>
           <div>
-            <DetailPin />
+            <DetailIcon type="market" />
             <dt>중심 시장:</dt>
             <dd>{marketName}</dd>
           </div>
           <div>
-            <DetailPin />
+            <DetailIcon type="hospital" />
             <dt>의료시설:</dt>
             <dd>{hospitalLabel}</dd>
           </div>
           <div>
-            <DetailPin />
+            <DetailIcon type="bus" />
             <dt>대중교통:</dt>
             <dd>{transportLabel}</dd>
           </div>

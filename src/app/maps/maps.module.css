@@ -357,29 +357,30 @@
   text-overflow: ellipsis;
 }
 
-.detailPin {
+.detailIcon {
   position: relative;
   width: 32px;
-  height: 37px;
+  height: 38px;
   flex: 0 0 32px;
   margin-right: 10px;
-  overflow: hidden;
 }
 
-.detailPinBase {
+.detailMarker {
   position: absolute;
-  top: -8px;
-  left: -8px;
-  width: 47px;
-  height: 52px;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
-.detailPinGlyph {
+.detailIconGlyph {
   position: absolute;
   top: 8px;
   left: 8px;
-  width: 15px;
-  height: 15px;
+  display: block;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .resultDescription {
