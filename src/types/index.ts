@@ -19,12 +19,7 @@ export interface Place {
 }
 
 export type MapMarkerCategory =
-  | "recommended"
-  | "hospital"
-  | "pharmacy"
-  | "bus_stop"
-  | "market"
-  | "shopping";
+  "recommended" | "hospital" | "pharmacy" | "bus_stop" | "market" | "shopping";
 
 export interface MapMarker {
   id: string;
@@ -109,7 +104,8 @@ export interface AnalysisBlock {
 }
 
 /** 모든 ContentBlock 타입의 유니온 */
-export type ContentBlock = TextBlock | MapBlock | PlaceListBlock | AnalysisBlock;
+export type ContentBlock =
+  TextBlock | MapBlock | PlaceListBlock | AnalysisBlock;
 
 // ============================================================
 // 채팅 메시지
@@ -150,7 +146,32 @@ export interface RecommendDongApiRequest {
   gender?: string;
   district?: string;
   dong?: string;
+  /** true이면 추천 진행 상황과 최종 결과를 NDJSON 스트림으로 받습니다. */
+  stream?: boolean;
 }
+
+export type RecommendationProgressStage =
+  | "request"
+  | "thinking"
+  | "tool_call"
+  | "tool_result"
+  | "geocoding"
+  | "finalizing";
+
+/** 모델의 비공개 추론이 아닌, 사용자에게 공개 가능한 작업 진행 정보입니다. */
+export interface RecommendationProgressEvent {
+  id: string;
+  stage: RecommendationProgressStage;
+  title: string;
+  detail?: string;
+  toolName?: string;
+  toolArgs?: Record<string, unknown>;
+}
+
+export type RecommendDongStreamEvent =
+  | { type: "progress"; event: RecommendationProgressEvent }
+  | { type: "complete"; data: RecommendDongApiResponse }
+  | { type: "error"; message: string };
 
 export interface RecommendDongApiResponse {
   dong: string;
@@ -176,6 +197,17 @@ export interface NeighborhoodCandidate {
   /** 시장 주소 등 경계 조회용 대표 주소 */
   address: string;
   markers: MapMarker[];
+  market?: CandidatePlaceSummary;
+  hospital?: CandidatePlaceSummary;
+  busStop?: CandidatePlaceSummary & { dailyTrips?: number };
+  /** 행정안전부 지역안전지수 등급. 1등급에 가까울수록 상대적으로 안전합니다. */
+  safetyGrade?: number;
+}
+
+export interface CandidatePlaceSummary {
+  name: string;
+  walkMinutes?: number;
+  distanceMeter?: number;
 }
 
 // ============================================================

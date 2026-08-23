@@ -1,4 +1,12 @@
-import { ContentBlock, Coordinates, MapMarker, NeighborhoodCandidate, Place } from "@/types";
+import {
+  ContentBlock,
+  Coordinates,
+  MapMarker,
+  NeighborhoodCandidate,
+  Place,
+  RecommendationProgressEvent,
+  RecommendationProgressStage,
+} from "@/types";
 import { DOMAIN_TOOLS } from "@/lib/tools/definitions";
 import { routeToolCall } from "@/lib/tools/router";
 import { extractToolPayload } from "@/lib/mcp/client";
@@ -52,6 +60,112 @@ interface ToolCallRecord {
   result: unknown;
 }
 
+type ProgressCallback = (event: RecommendationProgressEvent) => void;
+
+const TOOL_ACTIVITY_LABELS: Record<
+  string,
+  { running: string; completed: string }
+> = {
+  recommend_car_free_neighborhoods: {
+    running: "조건에 맞는 생활권 찾는 중",
+    completed: "조건에 맞는 생활권 찾음",
+  },
+  search_nearby_hospitals: {
+    running: "주변 병원 찾는 중",
+    completed: "주변 병원 찾음",
+  },
+  search_nearby_bus_stops: {
+    running: "주변 버스 정류장 찾는 중",
+    completed: "주변 버스 정류장 찾음",
+  },
+  search_nearby_markets: {
+    running: "가까운 전통시장 찾는 중",
+    completed: "가까운 전통시장 찾음",
+  },
+  search_nearby_stores: {
+    running: "주변 상가 찾는 중",
+    completed: "주변 상가 찾음",
+  },
+  get_age_population_ratio: {
+    running: "지역 연령대 정보 확인 중",
+    completed: "지역 연령대 정보 확인함",
+  },
+  get_safety_grade: {
+    running: "지역 안전 정보 확인 중",
+    completed: "지역 안전 정보 확인함",
+  },
+  search_nearby_facilities: {
+    running: "주변 생활 편의시설 찾는 중",
+    completed: "주변 생활 편의시설 찾음",
+  },
+  get_public_transport: {
+    running: "주변 대중교통 확인 중",
+    completed: "주변 대중교통 확인함",
+  },
+  get_safety_facilities: {
+    running: "주변 안전시설 찾는 중",
+    completed: "주변 안전시설 찾음",
+  },
+  analyze_area: {
+    running: "생활권 정보 종합 중",
+    completed: "생활권 정보 종합함",
+  },
+  search_places: {
+    running: "관련 장소 찾는 중",
+    completed: "관련 장소 찾음",
+  },
+};
+
+function getToolActivityLabel(name: string) {
+  return (
+    TOOL_ACTIVITY_LABELS[name] ?? {
+      running: "필요한 생활 정보 확인 중",
+      completed: "필요한 생활 정보 확인함",
+    }
+  );
+}
+
+function createProgressEvent(
+  stage: RecommendationProgressStage,
+  title: string,
+  detail?: string,
+  tool?: { name: string; args?: Record<string, unknown> }
+): RecommendationProgressEvent {
+  return {
+    id: `${stage}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    stage,
+    title,
+    detail,
+    toolName: tool?.name,
+    toolArgs: tool?.args,
+  };
+}
+
+function summarizeToolResult(result: unknown): string {
+  const payload = extractToolPayload(result);
+  if (typeof payload !== "object" || payload === null) {
+    return "데이터를 정상적으로 받았습니다.";
+  }
+
+  const record = payload as Record<string, unknown>;
+  const collectionKeys = [
+    "recommendations",
+    "places",
+    "facilities",
+    "stations",
+    "hospitals",
+    "bus_stops",
+    "markets",
+    "stores",
+  ];
+  for (const key of collectionKeys) {
+    if (Array.isArray(record[key])) {
+      return `${record[key].length}개의 결과를 받았습니다.`;
+    }
+  }
+  return "데이터를 정상적으로 받았습니다.";
+}
+
 // gyeongbuk-mcp recommend_car_free_neighborhoods 응답 (docs/output-models.md 기준, 필요한 필드만)
 interface GyeongbukCoordinates {
   latitude: number;
@@ -62,18 +176,25 @@ interface GyeongbukMarket {
   name: string;
   address: string;
   coordinates: GyeongbukCoordinates;
+  distance_m: number;
+  estimated_walk_minutes: number;
 }
 
 interface GyeongbukHospital {
   institution_id: string;
   name: string;
   coordinates: GyeongbukCoordinates;
+  distance_m: number;
+  estimated_walk_minutes: number;
 }
 
 interface GyeongbukBusStop {
   stop_id: string;
   name: string;
   coordinates: GyeongbukCoordinates;
+  distance_m: number;
+  estimated_walk_minutes: number;
+  estimated_daily_trips: number | null;
 }
 
 interface GyeongbukNeighborhoodRecommendation {
@@ -106,7 +227,9 @@ function isGyeongbukCoordinates(value: unknown): value is GyeongbukCoordinates {
   );
 }
 
-function isCarFreeResult(value: unknown): value is GyeongbukRecommendCarFreeResult {
+function isCarFreeResult(
+  value: unknown
+): value is GyeongbukRecommendCarFreeResult {
   return (
     typeof value === "object" &&
     value !== null &&
@@ -184,10 +307,21 @@ export class LlmClient {
     return { blocks: this.parseContentBlocks(content, collectedPlaces) };
   }
 
-  public async recommendDong(prompt: string): Promise<DongRecommendation> {
+  public async recommendDong(
+    prompt: string,
+    onProgress?: ProgressCallback
+  ): Promise<DongRecommendation> {
+    onProgress?.(
+      createProgressEvent(
+        "thinking",
+        "필요한 정보 고르는 중",
+        "요청에 맞는 생활권 지표와 검색 범위를 정리합니다."
+      )
+    );
     const { content, toolCalls } = await this.runConversation(
       RECOMMEND_DONG_SYSTEM_PROMPT,
-      [{ role: "user", content: prompt }]
+      [{ role: "user", content: prompt }],
+      onProgress
     );
 
     const carFreeCall = [...toolCalls]
@@ -197,7 +331,9 @@ export class LlmClient {
     if (carFreeCall) {
       const payload = extractToolPayload(carFreeCall.result);
       if (!isCarFreeResult(payload)) {
-        throw new Error("recommend_car_free_neighborhoods 도구 응답 형식이 올바르지 않습니다.");
+        throw new Error(
+          "recommend_car_free_neighborhoods 도구 응답 형식이 올바르지 않습니다."
+        );
       }
 
       if (payload.recommendations.length === 0) {
@@ -207,9 +343,64 @@ export class LlmClient {
         );
       }
 
-      const candidates = payload.recommendations.map((rec) =>
-        this.toNeighborhoodCandidate(rec)
-      );
+      let safetyGrade = [...toolCalls]
+        .reverse()
+        .filter((call) => call.name === "get_safety_grade")
+        .map((call) => extractToolPayload(call.result))
+        .find(
+          (value) =>
+            typeof value === "object" &&
+            value !== null &&
+            typeof (value as { grade?: unknown }).grade === "number"
+        ) as { grade: number } | undefined;
+
+      if (!safetyGrade) {
+        const safetyArgs = { region: "포항시", category: "crime" };
+        const safetyToolName = "get_safety_grade";
+        onProgress?.(
+          createProgressEvent(
+            "tool_call",
+            getToolActivityLabel(safetyToolName).running,
+            "추천 지역의 공식 안전지수를 확인합니다.",
+            { name: safetyToolName, args: safetyArgs }
+          )
+        );
+        const safetyResult = await routeToolCall(
+          safetyToolName,
+          safetyArgs,
+          `safety-${Date.now()}`
+        );
+        onProgress?.(
+          createProgressEvent(
+            "tool_result",
+            getToolActivityLabel(safetyToolName).completed,
+            safetyResult.isError
+              ? "안전 등급 정보를 불러오지 못했습니다."
+              : "공식 지역안전지수를 확인했습니다.",
+            { name: safetyToolName }
+          )
+        );
+        const safetyPayload = extractToolPayload(safetyResult.result);
+        if (
+          typeof safetyPayload === "object" &&
+          safetyPayload !== null &&
+          typeof (safetyPayload as { grade?: unknown }).grade === "number"
+        ) {
+          safetyGrade = safetyPayload as { grade: number };
+        }
+        onProgress?.(
+          createProgressEvent(
+            "thinking",
+            "생각 중",
+            "확인한 정보를 최종 추천에 반영합니다."
+          )
+        );
+      }
+
+      const candidates = payload.recommendations.map((rec) => ({
+        ...this.toNeighborhoodCandidate(rec),
+        safetyGrade: safetyGrade?.grade,
+      }));
       const top = candidates[0];
 
       return {
@@ -251,6 +442,7 @@ export class LlmClient {
         label: rec.nearest_market.name,
         address: rec.nearest_market.address,
         category: "market",
+        distanceMeter: rec.nearest_market.distance_m,
       });
     }
 
@@ -260,6 +452,7 @@ export class LlmClient {
         coordinates: toCoords(rec.nearest_hospital.coordinates),
         label: rec.nearest_hospital.name,
         category: "hospital",
+        distanceMeter: rec.nearest_hospital.distance_m,
       });
     }
 
@@ -270,6 +463,7 @@ export class LlmClient {
           coordinates: toCoords(stop.coordinates),
           label: stop.name,
           category: "bus_stop",
+          distanceMeter: stop.distance_m,
         });
       }
     }
@@ -278,18 +472,48 @@ export class LlmClient {
       rank: rec.rank,
       name: rec.candidate_name,
       score: Math.round(rec.score),
-      reason: (rec.reasons ?? []).join(" ") || "조건을 만족하는 생활권으로 평가되었습니다.",
+      reason:
+        (rec.reasons ?? []).join(" ") ||
+        "조건을 만족하는 생활권으로 평가되었습니다.",
       caveats: rec.caveats ?? [],
       coordinates: toCoords(rec.anchor),
       address: rec.nearest_market?.address ?? "",
       markers,
+      market: rec.nearest_market
+        ? {
+            name: rec.nearest_market.name,
+            walkMinutes: rec.nearest_market.estimated_walk_minutes,
+            distanceMeter: rec.nearest_market.distance_m,
+          }
+        : undefined,
+      hospital: rec.nearest_hospital
+        ? {
+            name: rec.nearest_hospital.name,
+            walkMinutes: rec.nearest_hospital.estimated_walk_minutes,
+            distanceMeter: rec.nearest_hospital.distance_m,
+          }
+        : undefined,
+      busStop: rec.qualifying_bus_stops?.[0]
+        ? {
+            name: rec.qualifying_bus_stops[0].name,
+            walkMinutes: rec.qualifying_bus_stops[0].estimated_walk_minutes,
+            distanceMeter: rec.qualifying_bus_stops[0].distance_m,
+            dailyTrips:
+              rec.qualifying_bus_stops[0].estimated_daily_trips ?? undefined,
+          }
+        : undefined,
     };
   }
 
   private async runConversation(
     systemPrompt: string,
-    messages: ChatCompletionMessage[]
-  ): Promise<{ content: string; collectedPlaces: Place[]; toolCalls: ToolCallRecord[] }> {
+    messages: ChatCompletionMessage[],
+    onProgress?: ProgressCallback
+  ): Promise<{
+    content: string;
+    collectedPlaces: Place[];
+    toolCalls: ToolCallRecord[];
+  }> {
     if (!this.apiKey) {
       throw new Error("LLM_API_KEY가 설정되지 않았습니다.");
     }
@@ -369,10 +593,30 @@ export class LlmClient {
             console.error("Failed to parse tool arguments:", e);
           }
 
+          onProgress?.(
+            createProgressEvent(
+              "tool_call",
+              getToolActivityLabel(toolName).running,
+              "실제 데이터를 조회해 추천 근거를 확인합니다.",
+              { name: toolName, args: toolArgs }
+            )
+          );
+
           const executionResult = await routeToolCall(
             toolName,
             toolArgs,
             toolCall.id
+          );
+
+          onProgress?.(
+            createProgressEvent(
+              "tool_result",
+              getToolActivityLabel(toolName).completed,
+              executionResult.isError
+                ? "일부 데이터를 불러오지 못해 가능한 정보로 계속 진행합니다."
+                : summarizeToolResult(executionResult.result),
+              { name: toolName }
+            )
           );
 
           toolCalls.push({
@@ -388,9 +632,8 @@ export class LlmClient {
             typeof executionResult.result === "object" &&
             "places" in executionResult.result
           ) {
-            const places = (
-              executionResult.result as { places: Place[] }
-            ).places;
+            const places = (executionResult.result as { places: Place[] })
+              .places;
             if (Array.isArray(places)) {
               collectedPlaces.push(...places);
             }
@@ -402,12 +645,23 @@ export class LlmClient {
             content: JSON.stringify(executionResult.result),
           });
         }
+        onProgress?.(
+          createProgressEvent(
+            "thinking",
+            "생각 중",
+            "확인한 정보를 비교해 다음 단계를 결정합니다."
+          )
+        );
         // tool 응답을 반영하여 다음 라운드 진행
         continue;
       }
 
       // Tool call이 없는 최종 응답 처리
-      return { content: assistantMsg.content || "", collectedPlaces, toolCalls };
+      return {
+        content: assistantMsg.content || "",
+        collectedPlaces,
+        toolCalls,
+      };
     }
 
     // 최대 라운드 초과 시
