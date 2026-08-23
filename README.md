@@ -44,7 +44,7 @@
 - **UI & Styling**: React 19, TypeScript, Tailwind CSS, Lucide React
 - **AI & Protocol**: Model Context Protocol (`@modelcontextprotocol/sdk`), LLM API
 - **Code Quality**: ESLint, Prettier, Git Pre-commit Hook (`.githooks`)
-- **Package Manager**: pnpm
+- **Package Manager**: Yarn 4
 
 ---
 
@@ -85,7 +85,7 @@ Ttaengsegwon/
 ### 1. 의존성 설치
 
 ```bash
-pnpm install
+yarn install --immutable
 ```
 
 ### 2. 환경 변수 설정
@@ -114,7 +114,7 @@ MCP_CLIENT_SECRET=
 ### 3. 개발 서버 실행
 
 ```bash
-pnpm dev
+yarn dev
 ```
 
 브라우저에서 [http://localhost:3000](http://localhost:3000)으로 접속합니다.
@@ -125,13 +125,13 @@ pnpm dev
 
 | 명령어              | 설명                                       |
 | ------------------- | ------------------------------------------ |
-| `pnpm dev`          | 개발 서버 실행                             |
-| `pnpm build`        | 프로덕션 빌드 생성                         |
-| `pnpm start`        | 프로덕션 서버 실행                         |
-| `pnpm lint`         | ESLint 검사 수행                           |
-| `pnpm type-check`   | TypeScript 타입 검사 수행 (`tsc --noEmit`) |
-| `pnpm format`       | Prettier 코드 자동 포매팅                  |
-| `pnpm format:check` | Prettier 포매팅 상태 검사                  |
+| `yarn dev`          | 개발 서버 실행                             |
+| `yarn build`        | 프로덕션 빌드 생성                         |
+| `yarn start`        | 프로덕션 서버 실행                         |
+| `yarn lint`         | ESLint 검사 수행                           |
+| `yarn type-check`   | TypeScript 타입 검사 수행 (`tsc --noEmit`) |
+| `yarn format`       | Prettier 코드 자동 포매팅                  |
+| `yarn format:check` | Prettier 포매팅 상태 검사                  |
 
 ---
 
