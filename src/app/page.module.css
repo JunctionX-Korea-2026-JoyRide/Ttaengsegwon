@@ -1,7 +1,8 @@
 .main {
   position: relative;
-  min-height: 100vh;
   width: 100%;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -11,57 +12,108 @@
 }
 
 .content {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: -8rem;
+  justify-content: flex-start;
+  padding-top: 193px;
+  transform-origin: top center;
+}
+
+.promptContent {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  padding-top: 193px;
+  justify-content: flex-start;
 }
 
 .avatar {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background-color: #d9d9d9;
-  margin-bottom: 1.5rem;
-  object-fit: cover;
+  width: 121px;
+  height: 121px;
+  margin-bottom: 98px;
+  object-fit: contain;
+}
+
+.promptAvatar {
+  width: 121px;
+  height: 121px;
+  margin-bottom: 90px;
 }
 
 .welcomeText {
-  font-size: 15px;
+  margin-bottom: 55px;
+  color: #000000;
+  font-family:
+    "Pretendard Variable",
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 20px;
   font-weight: 500;
-  color: black;
-  margin-bottom: 2rem;
+  line-height: 1.2;
 }
 
 .selectors {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 2.5rem;
+  gap: 17px;
+  margin-bottom: 50px;
+}
+
+.promptSelectors {
+  gap: 17px;
+  margin-bottom: 40px;
+  font-family:
+    "Pretendard Variable",
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.promptCityLabel {
+  color: rgba(0, 0, 0, 0.8);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
 }
 
 .ageGroup {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 17px;
 }
 
 .pillButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 9999px;
-  padding: 0.5rem 0.25rem;
-  font-size: 15px;
+  padding: 14px;
+  color: #000000;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), #ffffff);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 25px;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.09);
+  font-family:
+    "Pretendard Variable",
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 20px;
   font-weight: 500;
-  color: black;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   transition: background-color 0.2s;
-  border: none;
   cursor: pointer;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .pillButton:hover {
@@ -69,18 +121,59 @@
 }
 
 .pillButtonWithIcon {
-  padding-left: 1.25rem;
-  padding-right: 0.75rem;
-  gap: 0.25rem;
+  gap: 8px;
+  padding: 14px 14px 14px 20px;
+}
+
+.promptPillButton {
+  gap: 8px;
+  min-height: 58px;
+  padding: 14px 14px 14px 20px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), #ffffff);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 25px;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.09);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.promptPillButton .ageText {
+  color: #000000;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.promptDropdownIcon {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.promptDropdownIcon img {
+  width: 15px;
+  height: 8px;
 }
 
 .ageText {
-  font-size: 15px;
-  color: black;
+  color: #000000;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
 }
 
 .ageInput {
-  width: 2.5rem;
+  width: 52px;
+  min-width: 52px;
+  max-width: 52px;
+  height: 52px;
+  padding: 0;
+  flex: 0 0 52px;
   text-align: center;
   outline: none;
   position: relative;
@@ -129,23 +222,33 @@
   background-color: #f3f4f6;
 }
 
-.icon {
-  width: 16px;
-  height: 16px;
-  color: #6b7280;
-}
-
-.nextButton {
-  background-color: #ffffff;
-  border-radius: 50%;
-  width: 3rem;
-  height: 3rem;
+.homeDropdownIcon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.homeDropdownIcon img {
+  width: 15px;
+  height: 8px;
+}
+
+.nextButton {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), #ffffff);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.09);
   transition: background-color 0.2s;
-  border: none;
   cursor: pointer;
 }
 
@@ -154,32 +257,50 @@
 }
 
 .nextIcon {
-  width: 20px;
-  height: 20px;
-  color: black;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.nextIcon img {
+  width: 15px;
+  height: 8px;
+  transform: rotate(-90deg);
 }
 
 .promptForm {
-  width: 745px;
+  width: 823px;
+}
+
+.promptRow {
+  display: flex;
+  align-items: center;
+  gap: 22px;
 }
 
 .promptInputWrapper {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  width: 100%;
+  gap: 10px;
+  width: 745px;
+  flex: 0 0 745px;
   height: 101px;
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 1rem;
-  padding: 25px 12px 25px 25px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  padding: 20px 15px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), #ffffff);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 25px;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.09);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .promptSwatch {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 61px;
   flex-shrink: 0;
-  border-radius: 0.5rem;
   object-fit: contain;
 }
 
@@ -196,6 +317,56 @@
   color: #6b7280;
 }
 
+.promptSubmitButton {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), #ffffff);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.09);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.promptSubmitIcon {
+  width: 15px;
+  height: 8px;
+  transform: rotate(-90deg);
+}
+
+.promptClearButton {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.promptClearButton img {
+  width: 12px;
+  height: 12px;
+}
+
+.promptSubmitButton:hover:not(:disabled) {
+  transform: scale(1.04);
+}
+
+.promptSubmitButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .promptError {
   margin-top: 0.5rem;
   font-size: 13px;
@@ -204,50 +375,154 @@
 }
 
 .examples {
-  margin-top: 1.5rem;
-  max-width: 40rem;
+  margin-top: 24px;
+  max-width: min(1300px, calc(100vw - 32px));
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 9px;
 }
 
 .exampleText {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #6b7280;
+  padding: 12px 16px;
+  color: rgba(0, 0, 0, 0.5);
+  border-radius: 9999px;
+  font-family:
+    "Pretendard Variable",
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1;
   text-align: center;
 }
 
 .semicircle {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
+  position: fixed;
+  top: auto;
+  bottom: -194.9vh;
+  left: calc(50% + 3vh);
   transform: translateX(-50%);
-  width: 70%;
-  height: 35vh;
-  background: linear-gradient(180deg, rgba(254, 69, 12, 0.35) 0%, rgba(254, 69, 12, 0) 100%);
-  border-top-left-radius: 50% 100%;
-  border-top-right-radius: 50% 100%;
+  width: 224.3vh;
+  height: 224.3vh;
+  background: url("/images/figma/home-ellipse.svg") center / 100% 100% no-repeat;
   z-index: 0;
+  pointer-events: none;
 }
 
-@media (min-width: 640px) {
-  .semicircle {
-    width: 80%;
-    height: 25vh;
-  }
+.semicircle.promptSemicircle {
+  background: url("/images/figma/prompt-ellipse.svg") center / 100% 100%
+    no-repeat;
+  border-radius: 0;
 }
 
 .joyrideContainer {
   position: absolute;
-  bottom: 1.5rem;
+  top: 12.5vh;
+  bottom: auto;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .joyrideLogo {
+  position: relative;
+  width: 145px;
+  height: 66px;
+}
+
+.joyrideSymbol,
+.joyrideWordmark,
+.joyrideDot {
+  position: absolute;
   display: block;
-  width: auto;
-  height: 40px;
+}
+
+.joyrideSymbol {
+  top: 0;
+  left: 25.59%;
+  width: 48.82%;
+  height: 63.07%;
+}
+
+.joyrideWordmark {
+  top: 75.73%;
+  left: 0;
+  width: 100%;
+  height: 24.27%;
+}
+
+.joyrideDot {
+  top: 63.97%;
+  right: 0;
+  width: 4.1%;
+  height: 4.07%;
+}
+
+.promptJoyrideLogo {
+  width: 13vh;
+  height: 5.9vh;
+}
+
+@media (max-height: 1050px) and (min-width: 901px) {
+  .content {
+    transform: scale(0.85);
+  }
+}
+
+@media (max-height: 900px) and (min-width: 901px) {
+  .content {
+    transform: scale(0.76);
+  }
+}
+
+@media (max-height: 780px) and (min-width: 901px) {
+  .content {
+    transform: scale(0.65);
+  }
+}
+
+@media (max-height: 700px) and (min-width: 901px) {
+  .content {
+    transform: scale(0.58);
+  }
+}
+
+@media (max-width: 900px) {
+  .promptContent {
+    padding-top: 96px;
+  }
+
+  .promptAvatar {
+    margin-bottom: 56px;
+  }
+
+  .promptSelectors {
+    margin-bottom: 28px;
+  }
+
+  .promptForm {
+    width: min(823px, calc(100vw - 32px));
+  }
+
+  .promptRow {
+    gap: 12px;
+  }
+
+  .promptInputWrapper {
+    width: calc(100% - 68px);
+    flex-basis: calc(100% - 68px);
+  }
+
+  .examples {
+    margin-top: 14px;
+  }
+
+  .exampleText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
