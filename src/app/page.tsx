@@ -35,7 +35,7 @@ function getDongOptions(district: string): string[] {
 
 const EXAMPLE_PROMPTS = [
   "차 없는 70대가 살기 좋은 포항 근처 동네 찾아줘. 병원은 15분 이내, 버스는 하루 5회 이상, 시장도 가까웠으면 좋겠어.",
-  "자차 있는 30대 여성이고, 치안 좋고(여성안심골목이 있거나) 근처에 대형마트, 스타벅스가 있는 동네 추천해줘.",
+  "정기적으로 병원을 방문해야 하는 60대 1인 가구입니다. 병원과 약국이 가깝고 버스로 이동하기 편한 포항 동네를 추천해줘. 시장까지도 도보 15분 이내면 좋겠어.",
 ];
 
 type Dropdown = "gender" | "district" | "dong" | null;
